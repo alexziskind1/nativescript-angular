@@ -23,6 +23,8 @@ export interface LocationState {
     isPageNavigation: boolean;
 }
 
+export const pageSymbol = Symbol("ComponentPage");
+
 @Injectable()
 export class NSLocationStrategy extends LocationStrategy {
     private states = new Array<LocationState>();

@@ -12,7 +12,7 @@ import {
 } from "@angular/router";
 
 import { Device } from "tns-core-modules/platform";
-import { Frame } from "tns-core-modules/ui/frame";
+import { Frame, topmost } from "tns-core-modules/ui/frame";
 import { Page, NavigatedData } from "tns-core-modules/ui/page";
 import { profile } from "tns-core-modules/profiling";
 
@@ -23,7 +23,7 @@ import { DEVICE, PAGE_FACTORY, PageFactory } from "../platform-providers";
 import { routerLog } from "../trace";
 import { DetachedLoader } from "../common/detached-loader";
 import { ViewUtil } from "../view-util";
-import { NSLocationStrategy } from "./ns-location-strategy";
+import { NSLocationStrategy, pageSymbol } from "./ns-location-strategy";
 
 export class PageRoute {
     activatedRoute: BehaviorSubject<ActivatedRoute>;
@@ -37,10 +37,19 @@ class ChildInjector implements Injector {
     constructor(
         private providers: ProviderMap,
         private parent: Injector
-    ) {}
+    ) { }
 
-    get<T>(token: Type<T>|InjectionToken<T>, notFoundValue?: T): T {
-        return this.providers.get(token) || this.parent.get(token, notFoundValue);
+    get<T>(token: Type<T> | InjectionToken<T>, notFoundValue?: T): T {
+        let localValue = this.providers.get(token);
+        if (localValue) {
+            //         console.log(`------> ChildInjector: LOCAL VALUE
+            // token: ${token.toString().substr(0, 60)}
+            // value: ${localValue.toString().substr(0, 60)}`);
+            return localValue;
+        }
+
+        // console.log(`------> ChildInjector: fallback to parent token: ${token.toString().substr(0, 60)}`);
+        return this.parent.get(token, notFoundValue);
     }
 }
 
@@ -90,14 +99,14 @@ interface CacheItem {
 }
 
 
-type ProviderMap = Map<Type<any>|InjectionToken<any>, any>;
+type ProviderMap = Map<Type<any> | InjectionToken<any>, any>;
 
 const log = (msg: string) => routerLog(msg);
 
 @Directive({ selector: "page-router-outlet" }) // tslint:disable-line:directive-selector
 export class PageRouterOutlet implements OnDestroy, OnInit { // tslint:disable-line:directive-class-suffix
-    private activated: ComponentRef<any>|null = null;
-    private _activatedRoute: ActivatedRoute|null = null;
+    private activated: ComponentRef<any> | null = null;
+    private _activatedRoute: ActivatedRoute | null = null;
     private refCache: RefCache = new RefCache();
     private isInitialPage: boolean = true;
     private detachedLoaderFactory: ComponentFactory<DetachedLoader>;
@@ -177,6 +186,7 @@ export class PageRouterOutlet implements OnDestroy, OnInit { // tslint:disable-l
     }
 
     deactivate(): void {
+
         if (this.locationStrategy._isPageNavigatingBack()) {
             log("PageRouterOutlet.deactivate() while going back - should destroy");
             if (!this.isActivated) {
@@ -221,7 +231,7 @@ export class PageRouterOutlet implements OnDestroy, OnInit { // tslint:disable-l
             throw new Error("Outlet is not activated");
         }
 
-        this.location.detach();
+        // this.location.detach();
         const cmp = this.activated;
         this.activated = null;
         this._activatedRoute = null;
@@ -236,9 +246,11 @@ export class PageRouterOutlet implements OnDestroy, OnInit { // tslint:disable-l
             "when RouteReuseStrategy instructs to re-attach " +
             "previously detached subtree");
 
-        this.activated = ref;
-        this._activatedRoute = activatedRoute;
-        this.location.insert(ref.hostView);
+        // this.activated = ref;
+        // this._activatedRoute = activatedRoute;
+        // this.location.insert(ref.hostView);
+        this.activateOnGoBack(activatedRoute);
+
     }
 
     /**
@@ -248,20 +260,22 @@ export class PageRouterOutlet implements OnDestroy, OnInit { // tslint:disable-l
     @profile
     activateWith(
         activatedRoute: ActivatedRoute,
-        resolver: ComponentFactoryResolver|null
-    ): void {
+        resolver: ComponentFactoryResolver | null
+        ): void {
 
         log("PageRouterOutlet.activateWith() - " +
-            "instanciating new component during commit phase of a navigation");
+            "instantiating new component during commit phase of a navigation");
 
         this._activatedRoute = activatedRoute;
         resolver = resolver || this.resolver;
 
         if (this.locationStrategy._isPageNavigatingBack()) {
-            this.activateOnGoBack(activatedRoute);
-        } else {
-            this.activateOnGoForward(activatedRoute, resolver);
+            throw new Error("Currently in page back navigation - component should be reattached instead of activated.");
+            // this.activateOnGoBack(activatedRoute);
         }
+
+
+        this.activateOnGoForward(activatedRoute, resolver);
     }
 
     private activateOnGoForward(
@@ -271,6 +285,7 @@ export class PageRouterOutlet implements OnDestroy, OnInit { // tslint:disable-l
 
         const pageRoute = new PageRoute(activatedRoute);
         const providers = this.initProvidersMap(activatedRoute, pageRoute);
+
         const childInjector = new ChildInjector(providers, this.location.injector);
         const factory = this.getComponentFactory(activatedRoute, loadedResolver);
 
@@ -288,6 +303,9 @@ export class PageRouterOutlet implements OnDestroy, OnInit { // tslint:disable-l
                 reusedRoute: pageRoute,
                 loaderRef: null,
             });
+
+
+            this.activated.instance[pageSymbol] = topmost().currentPage;
         } else {
             log("PageRouterOutlet.activate() forward navigation - " +
                 "create detached loader in the loader container");
@@ -311,7 +329,10 @@ export class PageRouterOutlet implements OnDestroy, OnInit { // tslint:disable-l
                 reusedRoute: pageRoute,
                 loaderRef,
             });
+
+            this.activated.instance[pageSymbol] = page;
         }
+
     }
 
     private initProvidersMap(

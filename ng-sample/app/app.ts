@@ -20,7 +20,7 @@ import { setCategories, enable } from "trace";
 setCategories(
     `${animationsTraceCategory},${rendererTraceCategory}`
 );
-// setCategories(routerTraceCategory);
+setCategories(routerTraceCategory);
 // setCategories(listViewTraceCategory);
 enable();
 
@@ -132,9 +132,9 @@ const customPageFactoryProvider = {
 // platformNativeScriptDynamic().bootstrapModule(makeExampleModule(ActionBarTest));
 
 // router
-platformNativeScriptDynamic().bootstrapModule(makeExampleModule(RouterOutletAppComponent));
+// platformNativeScriptDynamic().bootstrapModule(makeExampleModule(RouterOutletAppComponent));
 // platformNativeScriptDynamic().bootstrapModule(makeExampleModule(PageRouterOutletAppComponent));
-// platformNativeScriptDynamic().bootstrapModule(makeExampleModule(PageRouterOutletNestedAppComponent));
+platformNativeScriptDynamic().bootstrapModule(makeExampleModule(PageRouterOutletNestedAppComponent));
 // platformNativeScriptDynamic().bootstrapModule(makeExampleModule(ClearHistoryAppComponent));
 // platformNativeScriptDynamic().bootstrapModule(makeExampleModule(LoginAppComponent));
 
