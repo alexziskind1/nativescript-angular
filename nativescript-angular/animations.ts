@@ -17,6 +17,9 @@ import { NativeScriptAnimationEngine } from "./animations/animation-engine";
 import { NativeScriptAnimationDriver } from "./animations/animation-driver";
 import { NativeScriptModule } from "./nativescript.module";
 import { NativeScriptRendererFactory } from "./renderer";
+import { NativeScriptAnimationBuilder } from "./animations/animation-builder";
+import { APP_ROOT_VIEW } from "./platform-providers";
+import { View } from "tns-core-modules/ui/core/view";
 
 @Injectable()
 export class InjectableAnimationEngine extends NativeScriptAnimationEngine {
@@ -30,7 +33,7 @@ export function instantiateSupportedAnimationDriver() {
 }
 
 export function instantiateRendererFactory(
-        renderer: NativeScriptRendererFactory, engine: NativeScriptAnimationEngine, zone: NgZone) {
+    renderer: NativeScriptRendererFactory, engine: NativeScriptAnimationEngine, zone: NgZone) {
     return new AnimationRendererFactory(renderer, engine, zone);
 }
 
@@ -38,11 +41,19 @@ export function instantiateDefaultStyleNormalizer() {
     return new WebAnimationsStyleNormalizer();
 }
 
+export function instantiateAnimationBuilder(renderer: NativeScriptRendererFactory, rootView: View) {
+    return new NativeScriptAnimationBuilder(renderer, rootView);
+}
+
 export const NATIVESCRIPT_ANIMATIONS_PROVIDERS: Provider[] = [
-    {provide: AnimationBuilder, useClass: BrowserAnimationBuilder},
-    {provide: AnimationDriver, useFactory: instantiateSupportedAnimationDriver},
-    {provide: AnimationStyleNormalizer, useFactory: instantiateDefaultStyleNormalizer},
-    {provide: NativeScriptAnimationEngine, useClass: InjectableAnimationEngine},
+    {
+        provide: AnimationBuilder,
+        useFactory: instantiateAnimationBuilder,
+        deps: [NativeScriptRendererFactory, APP_ROOT_VIEW]
+    },
+    { provide: AnimationDriver, useFactory: instantiateSupportedAnimationDriver },
+    { provide: AnimationStyleNormalizer, useFactory: instantiateDefaultStyleNormalizer },
+    { provide: NativeScriptAnimationEngine, useClass: InjectableAnimationEngine },
     {
         provide: RendererFactory2,
         useFactory: instantiateRendererFactory,

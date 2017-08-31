@@ -50,6 +50,7 @@ import { AnimationKeyframesTest } from "./examples/animation/animation-keyframes
 import { AnimationNgClassTest } from "./examples/animation/animation-ngclass-test";
 import { AnimationStatesTest } from "./examples/animation/animation-states-test";
 import { AnimationStatesMultiTest } from "./examples/animation/animation-states-multi-test";
+import { AnimationBuilderTest } from "./examples/animation/animation-builder-test";
 
 @NgModule({
     declarations: [
@@ -132,7 +133,7 @@ const customPageFactoryProvider = {
 // platformNativeScriptDynamic().bootstrapModule(makeExampleModule(ActionBarTest));
 
 // router
-platformNativeScriptDynamic().bootstrapModule(makeExampleModule(RouterOutletAppComponent));
+// platformNativeScriptDynamic().bootstrapModule(makeExampleModule(RouterOutletAppComponent));
 // platformNativeScriptDynamic().bootstrapModule(makeExampleModule(PageRouterOutletAppComponent));
 // platformNativeScriptDynamic().bootstrapModule(makeExampleModule(PageRouterOutletNestedAppComponent));
 // platformNativeScriptDynamic().bootstrapModule(makeExampleModule(ClearHistoryAppComponent));
@@ -144,6 +145,7 @@ platformNativeScriptDynamic().bootstrapModule(makeExampleModule(RouterOutletAppC
 // platformNativeScriptDynamic().bootstrapModule(makeExampleModule(AnimationNgClassTest));
 // platformNativeScriptDynamic().bootstrapModule(makeExampleModule(AnimationKeyframesTest));
 // platformNativeScriptDynamic().bootstrapModule(makeExampleModule(AnimationEnterLeaveTest));
+platformNativeScriptDynamic().bootstrapModule(makeExampleModule(AnimationBuilderTest));
 
 // Livesync test
 let cachedUrl: string;
