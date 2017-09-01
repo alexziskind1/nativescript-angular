@@ -5,38 +5,48 @@ import {
     style,
     animate,
     transition,
-    AnimationBuilder
+    AnimationBuilder,
+    AnimationPlayer
 } from '@angular/animations';
 
 @Component({
-    selector: "animation-enter-leave",
-    templateUrl: "./examples/animation/animation-enter-leave-test.html",
-    styleUrls: ["./examples/animation/animation-enter-leave-test.css"],
-    animations: [
-        trigger("state", [
-            state("in", style({
-                "background-color": "red",
-                "opacity": 1,
-            })),
-
-            state("void", style({
-                "background-color": "white",
-                "opacity": 0,
-            })),
-            transition("void => *", [animate("600ms ease-out")]),
-            transition("* => void", [animate("600ms ease-out")])
-        ])
-    ]
+    selector: "animation-builder",
+    template: `
+        <StackLayout>
+            <Button text="Do it" (tap)="makeAnimation($event, lbl)"></Button>
+            <Label #lbl text="test" class="lbl"></Label>
+        </StackLayout>
+    `,
+    styles: [`
+        .lbl {
+            background-color: red;
+        }
+    `]
 })
 export class AnimationBuilderTest {
 
     public items: Array<string>;
 
     constructor(public builder: AnimationBuilder) {
+
+
         this.items = [];
         for (let i = 0; i < 3; i++) {
             this.items.push("Item " + i);
         }
+    }
+
+    public makeAnimation(args, element: any) {
+        // first build the animation
+        const myAnimation = this.builder.build([
+            style({ width: 0 }),
+            animate(1000, style({ width: '100px' }))
+        ]);
+
+        // then create a player from it
+        const player = myAnimation.create(element);
+
+        player.play();
     }
 
     onAddTap() {

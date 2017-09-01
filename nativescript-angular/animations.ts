@@ -18,8 +18,9 @@ import { NativeScriptAnimationDriver } from "./animations/animation-driver";
 import { NativeScriptModule } from "./nativescript.module";
 import { NativeScriptRendererFactory } from "./renderer";
 import { NativeScriptAnimationBuilder } from "./animations/animation-builder";
-import { APP_ROOT_VIEW } from "./platform-providers";
+import { APP_ROOT_VIEW, getRootPage } from "./platform-providers";
 import { View } from "tns-core-modules/ui/core/view";
+import { topmost } from "tns-core-modules/ui/frame";
 
 @Injectable()
 export class InjectableAnimationEngine extends NativeScriptAnimationEngine {
@@ -41,7 +42,13 @@ export function instantiateDefaultStyleNormalizer() {
     return new WebAnimationsStyleNormalizer();
 }
 
+/*
 export function instantiateAnimationBuilder(renderer: NativeScriptRendererFactory, rootView: View) {
+    return new NativeScriptAnimationBuilder(renderer, rootView);
+}*/
+
+export function instantiateAnimationBuilder(renderer: NativeScriptRendererFactory) {
+    let rootView = getRootPage() || topmost().currentPage;
     return new NativeScriptAnimationBuilder(renderer, rootView);
 }
 
@@ -49,7 +56,7 @@ export const NATIVESCRIPT_ANIMATIONS_PROVIDERS: Provider[] = [
     {
         provide: AnimationBuilder,
         useFactory: instantiateAnimationBuilder,
-        deps: [NativeScriptRendererFactory, APP_ROOT_VIEW]
+        deps: [NativeScriptRendererFactory]
     },
     { provide: AnimationDriver, useFactory: instantiateSupportedAnimationDriver },
     { provide: AnimationStyleNormalizer, useFactory: instantiateDefaultStyleNormalizer },
